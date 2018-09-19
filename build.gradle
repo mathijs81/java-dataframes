@@ -1,0 +1,23 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+dependencies {
+  compile 'tech.tablesaw:tablesaw-core:0.25.2'
+
+  compile 'joinery:joinery-dataframe:1.9'
+  // For the CSV import joinery needs this dependency too:
+  compile 'org.apache.poi:poi:3.17'
+
+  compile 'com.zavtech:morpheus-core:0.9.21'
+
+  compile 'org.datavec:datavec-api:1.0.0-beta2'
+  compile 'org.datavec:datavec-local:1.0.0-beta2'
+}
+
