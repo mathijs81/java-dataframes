@@ -6,6 +6,7 @@ import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
+import tech.tablesaw.io.csv.CsvReadOptions;
 
 import com.google.common.base.Stopwatch;
 
@@ -19,34 +20,23 @@ import com.google.common.base.Stopwatch;
  */
 public class TestTablesaw {
     public static void main(String[] args) throws Exception {
-        Table data = Table.read().csv("urb_cpop1_1_Data.csv");
+        // This automatically makes the ":" values missing
+        Table data = Table.read().csv(
+            CsvReadOptions.builder("urb_cpop1_1_Data.csv").missingValueIndicator(":").build());
         System.out.println(data.print(5));
 
         Stopwatch watch = Stopwatch.createStarted();
-        // Convert value column to numeric column (":" should become missing)
-        Table filtered = data.emptyCopy();
-        filtered.replaceColumn("Value", DoubleColumn.create("Value"));
-        data.forEach(row -> {
-            if (!":".equals(row.getString("Value"))) {
-                for (int i = 0; i < row.columnCount(); i++) {
-                    String colName = data.column(i).name();
-                    Object obj = row.getObject(i);
-                    if ("Value".equals(colName)) {
-                        obj = Double.parseDouble((String)obj);
-                    }
-                    filtered.column(colName).appendObj(obj);
-                }
-            }
-        });
+        Table filtered = data.where(data.column("Value").isNotMissing());
 
         Table cities = filtered.summarize("Value", mean).by("CITIES", "INDIC_UR", "TIME");
         System.out.println(cities.print(10));
 
         // Need to transpose/pivot now too
+        // Next version of tablesaw will make this a one-liner!
         Table finalTable = Table.create("final");
         finalTable.addColumns(StringColumn.create("key"));
         cities.forEach(row -> {
-            int year = (int)row.getDouble("TIME");
+            int year = row.getShort("TIME");
             String yearStr = Integer.toString(year);
             String key = row.getString("CITIES") + ":" + row.getString("INDIC_UR");
             double value = row.getDouble("Mean [Value]");
@@ -74,16 +64,11 @@ public class TestTablesaw {
         System.out.println(filterTotalKeys(existing2017).sortDescendingOn("2017").print(20));
 
         // Add growth column
-        DoubleColumn growthColumn = DoubleColumn.create("growth");
-        finalTable.forEach(row -> {
-            Double val2016 = row.getDouble("2016"), val2010 = row.getDouble("2010");
-            if (val2010 != null && val2016 != null) {
-                growthColumn.append((val2016 / val2010 - 1) * 100);
-            } else {
-                growthColumn.appendMissing();
-            }
-        });
+        DoubleColumn growthColumn = finalTable.doubleColumn("2016").divide(
+            finalTable.doubleColumn("2010")).subtract(1).multiply(100);
+        growthColumn.setName("growth");
         finalTable.addColumns(growthColumn);
+        
         Table highestGrowthTable = filterTotalKeys(
             finalTable.dropWhere(finalTable.column("growth").isMissing())).sortDescendingOn(
                 "growth");
@@ -94,15 +79,6 @@ public class TestTablesaw {
     }
 
     private static Table filterTotalKeys(Table existing2017) {
-        // Here I'd want to do something more functional like
-        // return existing2017.filter(row -> row.getString("key").endsWith(...))
-        // but there doesn't seem to be an easy way to do that.
-        Table onlyTotalKeys = existing2017.emptyCopy();
-        existing2017.forEach(row -> {
-            if (row.getString("key").endsWith("January, total")) {
-                onlyTotalKeys.addRow(row);
-            }
-        });
-        return onlyTotalKeys;
+        return existing2017.where(existing2017.stringColumn("key").endsWith("January, total"));
     }
 }
