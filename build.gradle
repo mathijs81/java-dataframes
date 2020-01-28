@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-  compile 'tech.tablesaw:tablesaw-core:0.30.1'
+  compile 'tech.tablesaw:tablesaw-core:0.37.3'
 
   compile 'joinery:joinery-dataframe:1.9'
   // For the CSV import joinery needs this dependency too:
