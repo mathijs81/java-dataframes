@@ -5,7 +5,6 @@ import static tech.tablesaw.aggregate.AggregateFunctions.mean;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.csv.CsvReadOptions;
 
 import com.google.common.base.Stopwatch;
@@ -32,32 +31,11 @@ public class TestTablesaw {
         System.out.println(cities.print(10));
 
         // Need to transpose/pivot now too
-        // Next version of tablesaw will make this a one-liner!
-        Table finalTable = Table.create("final");
-        finalTable.addColumns(StringColumn.create("key"));
-        cities.forEach(row -> {
-            int year = row.getShort("TIME");
-            String yearStr = Integer.toString(year);
-            String key = row.getString("CITIES") + ":" + row.getString("INDIC_UR");
-            double value = row.getDouble("Mean [Value]");
-            if (!finalTable.columnNames().contains(yearStr)) {
-                DoubleColumn col = DoubleColumn.create(yearStr);
-                // Need to prefill null for rows that exist already.
-                for (int i = 0; i < finalTable.rowCount(); i++) {
-                    col.appendMissing();
-                }
-                finalTable.addColumns(col);
-            }
-            int firstIndex = ((StringColumn)finalTable.column("key")).firstIndexOf(key);
-            if (firstIndex == -1) {
-                firstIndex = finalTable.rowCount();
-                for (Column<?> col : finalTable.columns()) {
-                    col.appendMissing();
-                }
-                ((Column<String>)finalTable.column("key")).set(firstIndex, key);
-            }
-            ((Column<Double>)finalTable.column(yearStr)).set(firstIndex, value);
-        });
+        StringColumn key = filtered.stringColumn("CITIES")
+            .join(":", filtered.stringColumn("INDIC_UR")).setName("key");
+        filtered.addColumns(key);
+        Table finalTable = filtered.pivot("key", "TIME", "Value", mean);
+
         // sortDescendingOn puts N/A values first unfortunately, so let's remove them
         // before determining and printing.
         Table existing2017 = finalTable.dropWhere(finalTable.column("2017").isMissing());
