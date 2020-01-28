@@ -1,4 +1,17 @@
+buildscript {
+  ext.kotlin_version = '1.3.61'
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
 apply plugin: 'java'
+apply plugin: 'kotlin'
 apply plugin: 'eclipse'
 
 sourceCompatibility = 1.8
@@ -9,15 +22,18 @@ repositories {
 }
 
 dependencies {
-  compile 'tech.tablesaw:tablesaw-core:0.37.3'
+  implementation 'tech.tablesaw:tablesaw-core:0.37.3'
 
-  compile 'joinery:joinery-dataframe:1.9'
+  implementation 'joinery:joinery-dataframe:1.9'
   // For the CSV import joinery needs this dependency too:
-  compile 'org.apache.poi:poi:3.17'
+  implementation 'org.apache.poi:poi:3.17'
 
-  compile 'com.zavtech:morpheus-core:0.9.21'
+  implementation 'com.zavtech:morpheus-core:0.9.21'
 
-  compile 'org.datavec:datavec-api:1.0.0-beta2'
-  compile 'org.datavec:datavec-local:1.0.0-beta2'
+  implementation 'org.datavec:datavec-api:1.0.0-beta2'
+  implementation 'org.datavec:datavec-local:1.0.0-beta2'
+
+  implementation "de.mpicbg.scicomp:krangl:0.11"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
