@@ -18,7 +18,7 @@ import com.google.common.base.Stopwatch;
  * for more information.
  */
 public class TestTablesaw {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         // This automatically makes the ":" values missing
         Table data = Table.read().csv(
             CsvReadOptions.builder("urb_cpop1_1_Data.csv").missingValueIndicator(":").build());

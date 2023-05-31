@@ -4,3 +4,5 @@ bin
 .project
 .settings
 .gradle
+.idea/
+build/
