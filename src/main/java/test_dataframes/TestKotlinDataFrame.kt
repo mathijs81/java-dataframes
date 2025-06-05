@@ -4,7 +4,6 @@ import com.google.common.base.Stopwatch
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.io.*
 import org.jetbrains.kotlinx.dataframe.api.*
-
 /**
  * Test the API of Kotlin Dataframes to do some basic dataframe manipulations.
  *
@@ -12,19 +11,19 @@ import org.jetbrains.kotlinx.dataframe.api.*
  * for more information.
  */
 fun main() {
-    val df = DataFrame.read("urb_cpop1_1_Data.csv", delimiter = ',')
+    val keyColumn = "key"
+    val df = DataFrame.readCsv(fileOrUrl = "urb_cpop1_1_Data.csv", delimiter = ',')
     df.print()
     val watch = Stopwatch.createStarted()
-    val key by column<String>()
     // remove missing values indicated with ":", convert column to IntCol
     val filtered = df.filter { "Value"<String>() != ":" }
-        .add(key) { "CITIES"<String>() + ":" + "INDIC_UR"<String>() }
+        .add(keyColumn) { "CITIES"<String>() + ":" + "INDIC_UR"<String>() }
         .convert { "Value"<String>() }.toInt()
 
-    var cities = filtered.groupBy(key).pivot("TIME", inward = false).mean { "Value"<Int>() }
+    var cities = filtered.groupBy(keyColumn).pivot("TIME", inward = false).mean { "Value"<Int>() }
     cities.print()
 
-    cities = cities.filter { key().endsWith("January, total") }.sortByDesc("2017")
+    cities = cities.filter { keyColumn<String>().endsWith("January, total") }.sortByDesc("2017")
     cities.print()
 
     // growth
@@ -34,6 +33,7 @@ fun main() {
             .sortByDesc("growth")
     highestGrowthTable.print()
 
-    CheckResult.checkResult(highestGrowthTable[{ key }].toList())
+    CheckResult.checkResult(highestGrowthTable[keyColumn].toList())
+        //highestGrowthTable[{ key }].toList())
     println("Total time: $watch")
 }

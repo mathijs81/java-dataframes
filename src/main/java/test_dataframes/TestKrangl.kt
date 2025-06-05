@@ -34,6 +34,6 @@ fun main() {
 
     println(highestGrowthTable.select("CITIES", "growth").head(10))
 
-    CheckResult.checkResult(highestGrowthTable["CITIES"].asStrings().toList())
+    CheckResult.checkResult(highestGrowthTable["CITIES"].asType<String>().toList())
     println("Total time: $watch")
 }
